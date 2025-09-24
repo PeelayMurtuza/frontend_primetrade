@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+
+  const { login } = useContext(AuthContext); // AuthContext login function
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,12 +23,15 @@ function SignIn() {
       const data = await res.json();
 
       if (data.success) {
-        // Save JWT token & role in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
-        setMessage("Login successful!");
+        // Save token & role in context
+        login(data.token, data.role);
+
+        // Reset form
         setEmail("");
         setPassword("");
+
+        // Redirect to tasks
+        navigate("/tasks");
       } else {
         setMessage(data.message || "Login failed");
       }
@@ -37,9 +45,7 @@ function SignIn() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Sign In</h2>
-        {message && (
-          <p className="text-center mb-4 text-sm text-red-500">{message}</p>
-        )}
+        {message && <p className="text-center mb-4 text-sm text-red-500">{message}</p>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="email"
@@ -65,7 +71,8 @@ function SignIn() {
           </button>
         </form>
         <p className="mt-4 text-center text-gray-600 text-sm">
-          Don't have an account? <a href="/signup" className="text-blue-500 hover:underline">Sign Up</a>
+          Don't have an account?{" "}
+          <a href="/signup" className="text-blue-500 hover:underline">Sign Up</a>
         </p>
       </div>
     </div>

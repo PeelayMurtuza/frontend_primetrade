@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 function SignUp() {
   const [email, setEmail] = useState("");
@@ -6,8 +8,12 @@ function SignUp() {
   const [role, setRole] = useState("user");
   const [message, setMessage] = useState("");
 
+  const { login } = useContext(AuthContext); // AuthContext login function
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
@@ -16,11 +22,18 @@ function SignUp() {
       });
 
       const data = await res.json();
+
       if (data.success) {
-        setMessage("User registered successfully!");
+        // Save token & role in context
+        login(data.token, data.role);
+
+        // Reset form
         setEmail("");
         setPassword("");
         setRole("user");
+
+        // Redirect to tasks
+        navigate("/tasks");
       } else {
         setMessage(data.message || "Registration failed");
       }
@@ -34,9 +47,7 @@ function SignUp() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Sign Up</h2>
-        {message && (
-          <p className="text-center mb-4 text-sm text-red-500">{message}</p>
-        )}
+        {message && <p className="text-center mb-4 text-sm text-red-500">{message}</p>}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
             type="email"
@@ -70,7 +81,8 @@ function SignUp() {
           </button>
         </form>
         <p className="mt-4 text-center text-gray-600 text-sm">
-          Already have an account? <a href="/signin" className="text-blue-500 hover:underline">Sign In</a>
+          Already have an account?{" "}
+          <a href="/signin" className="text-blue-500 hover:underline">Sign In</a>
         </p>
       </div>
     </div>
